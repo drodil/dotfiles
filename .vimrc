@@ -109,7 +109,7 @@ set showmode                    " Show current mode
 set nobackup                    " No backup file
 set noswapfile                  " No swap file
 " show line number
-set number
+set number relativenumber
 " Mouse
 set mousehide                   " Hide mouse when typing
 set mouse=nicr                  " Disable mouse
@@ -278,6 +278,12 @@ augroup filtypes
     autocmd FileType c,cpp setlocal commentstring=///\ %s
     autocmd FileType crontab setlocal nobackup nowritebackup
 augroup end
+
+augroup numbertoggle
+  autocmd!
+  autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
+  autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
+augroup END
 
 augroup remove_trailing_whitespace
     autocmd!
