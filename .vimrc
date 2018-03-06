@@ -65,6 +65,8 @@ Plug 'octol/vim-cpp-enhanced-highlight', { 'for': 'cpp' }
 Plug 'tpope/vim-surround'
 " Allow repeat for plugins
 Plug 'tpope/vim-repeat'
+" Ctrl+P file search
+Plug 'ctrlpvim/ctrlp.vim'
 " Nice colors
 Plug 'morhetz/gruvbox'
 call plug#end()            " required
@@ -170,6 +172,12 @@ autocmd FileType c ClangFormatAutoEnable
 autocmd FileType h ClangFormatAutoEnable
 autocmd FileType cpp ClangFormatAutoEnable
 autocmd FileType hpp ClangFormatAutoEnable
+
+" Ctrlp settings
+let g:ctrlp_custom_ignore = {
+  \ 'dir':  '\v[\/]\.(git|hg|svn)|build|stage$',
+  \ 'file': '\v\.(exe|so|dll)$'
+  \ }
 
 " Autocomplete
 if executable('clangd')
