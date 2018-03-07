@@ -271,7 +271,14 @@ map <silent> <leader><cr> :noh<cr>
 " Switch between header and source
 map <leader>a :A<cr>
 
+" Get off my lawn - helpful when learning Vim :)
+nnoremap <Left> :echoe "Use h"<CR>
+nnoremap <Right> :echoe "Use l"<CR>
+nnoremap <Up> :echoe "Use k"<CR>
+nnoremap <Down> :echoe "Use j"<CR>
+
 " Autocommands
+autocmd BufWritePre * %s/\s\+$//e
 augroup filtypes
     autocmd!
     autocmd FileType c,cpp setlocal comments^=:///
