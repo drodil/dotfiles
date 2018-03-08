@@ -75,7 +75,13 @@ installVim() {
         mv ~/.vimrc ~/.vimrc.dotfiles.bak
     fi
     printInfo "** Adding new .vimrc"
-    cp .vimrc ~/.vimrc
+    mkdir -p .vim
+    mkdir -p .vim/tags
+
+    cp .vimrc ~/.vim/vimrc
+    ln -s ~/.vim/vimrc ~/.vimrc
+    cp .vim/tags/cpp ~/.vim/tags/
+    cp .vim/tags/generate_tags.sh ~/.vim/tags/
 
     VIMVERSION=$(vim --version | head -1 | cut -d ' ' -f 5)
     if [ ! $(echo "$VIMVERSION >= 8.0" | bc -l) ]; then
@@ -84,7 +90,6 @@ installVim() {
         sudo apt-get -qq update
         sudo apt-get -qq install -y vim
     fi
-
 
     PKG_OK=$(dpkg-query -W --showformat='${Status}\n' clang-tools-7|grep "install ok installed")
     if [ "" == "$PKG_OK" ]; then
@@ -125,7 +130,7 @@ installAll() {
     printInfo "----"
     installBash
     printInfo "----"
-    installGit
+    installVim
     printInfo "----"
     installTmux
     printInfo "Installation DONE"
@@ -138,7 +143,7 @@ if [ "$INSTALL_TARGET" == "vim" ] ; then
     installVim
 elif [ "$INSTALL_TARGET" == "bash" ] ; then
     installBash
-elif [ "INSTALL_TARGET" == "tmux"] ; then
+elif [ "$INSTALL_TARGET" == "tmux" ] ; then
     installTmux
 else
     installAll
