@@ -50,6 +50,17 @@ install() {
         sudo apt-get -qq update
         sudo apt-get -qq install -y vim
     fi
+
+
+    PKG_OK=$(dpkg-query -W --showformat='${Status}\n' clang-tools-7|grep "install ok installed")
+    if [ "" == "$PKG_OK" ]; then
+        sudo wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        sudo add-apt-repository -y "deb http://apt.llvm.org/$(lsb_release -s -c)/ llvm-toolchain-$(lsb_release -s -c)-7.0 main" > /dev/null 2>&1
+        sudo apt-get -qq update
+  	    sudo apt-get install -y clang-tools-7
+        sudo ln -fsn /usr/bin/clangd-7 /usr/bin/clangd
+    fi
+
     printInfo "** Installing python-language-server"
     sudo apt-get -qq install -y python-pip
     sudo -H pip install --upgrade python-language-server > /dev/null 2>&1
