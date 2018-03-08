@@ -1,6 +1,42 @@
 #!/usr/bin/env bash
 
 DOTFILES=$(pwd -P)
+# TODO: Allow multiple targets by using array
+INSTALL_TARGET="all"
+while [[ $# -gt 0 ]]
+do
+
+# Parse command line params
+key="$1"
+case $key in
+    -h|--help)
+    HELP=YES
+    ;;
+    (-v|--vim)
+    INSTALL_TARGET="vim"
+    ;;
+    -b|--bash)
+    INSTALL_TARGET="bash"
+    ;;
+    -t|--tmux)
+    INSTALL_TARGET="tmux"
+    ;;
+esac
+shift # past argument or value
+done
+
+function show_help {
+    echo "By default all dotfiles are installed."
+    echo "Supported parameters are:"
+    echo "-v|--vim             Install vim configuration"
+    echo "-b|--bash            Install bash configuration"
+    echo "-t|--tmux            Install tmux configuration"
+}
+
+if [ -n "$HELP" ]; then
+    show_help
+    exit
+fi
 
 printInfo() {
     printf "\033[00;34m$@\033[0m\n"
@@ -11,11 +47,8 @@ update() {
     git pull origin master > /dev/null 2>&1
 }
 
-# TODO: Divide to different functions
-install() {
-    printInfo "Installing all packages"
-    printInfo "----"
-    printInfo "* Configuring bash"
+installBash() {
+   printInfo "* Configuring bash"
     if [ -e ~/.bashrc ]; then
         if [ -e ~/.bashrc.dotfiles.bak ]; then
             printInfo "** Restoring previous backup from .bashrc.dotfiles.bak"
@@ -29,8 +62,9 @@ install() {
     printInfo "** Adding new .bashrc"
     cp .bashrc ~/.bashrc
     printInfo "** DONE"
+}
 
-    printInfo "----"
+installVim() {
     printInfo "* Configuring VIM"
     if [ -e ~/.vimrc ]; then
         if [ -e ~/.vimrc.dotfiles.bak ]; then
@@ -67,8 +101,9 @@ install() {
     printInfo "** Installing VIM plugins"
     vim +PlugInstall +qall
     printInfo "** DONE"
+}
 
-    printInfo "----"
+installTmux() {
     printInfo "* Configuring tmux"
     if [ -e ~/.tmux.conf ]; then
         if [ -e ~/.tmux.conf.dotfiles.bak ]; then
@@ -83,11 +118,28 @@ install() {
     printInfo "** Installing tmux"
     sudo apt-get -qq install -y tmux
     printInfo "** DONE"
+}
+
+installAll() {
+    printInfo "Installing all packages"
+    printInfo "----"
+    installBash
+    printInfo "----"
+    installGit
+    printInfo "----"
+    installTmux
     printInfo "Installation DONE"
     read -n 1 -s -r -p "Press any key to continue"
     source ~/.bashrc
 }
 
-# TODO: Add command line parameters
 update
-install
+if [ "$INSTALL_TARGET" == "vim" ] ; then
+    installVim
+elif [ "$INSTALL_TARGET" == "bash" ] ; then
+    installBash
+elif [ "INSTALL_TARGET" == "tmux"] ; then
+    installTmux
+else
+    installAll
+fi
