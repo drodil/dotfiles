@@ -60,7 +60,7 @@ installBash() {
     printInfo "** Installing fortune"
     sudo apt-get -qq install -y fortune-mod
     printInfo "** Adding new .bashrc"
-    cp .bashrc ~/.bashrc
+    cp $DOTFILES/.bashrc ~/.bashrc
     printInfo "** DONE"
 }
 
@@ -75,13 +75,13 @@ installVim() {
         mv ~/.vimrc ~/.vimrc.dotfiles.bak
     fi
     printInfo "** Adding new .vimrc"
-    mkdir -p .vim
-    mkdir -p .vim/tags
+    mkdir -p ~/.vim
+    mkdir -p ~/.vim/tags
 
-    cp .vimrc ~/.vim/vimrc
+    cp $DOTFLES.vimrc ~/.vim/vimrc
     ln -s ~/.vim/vimrc ~/.vimrc
-    cp .vim/tags/cpp ~/.vim/tags/
-    cp .vim/tags/generate_tags.sh ~/.vim/tags/
+    cp $DOTFILES/.vim/tags/cpp ~/.vim/tags/
+    cp $DOTFILES/.vim/tags/generate_tags.sh ~/.vim/tags/
 
     VIMVERSION=$(vim --version | head -1 | cut -d ' ' -f 5)
     if [ ! $(echo "$VIMVERSION >= 8.0" | bc -l) ]; then
@@ -94,7 +94,7 @@ installVim() {
     PKG_OK=$(dpkg-query -W --showformat='${Status}\n' clang-tools-7|grep "install ok installed")
     if [ "" == "$PKG_OK" ]; then
         sudo wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        sudo add-apt-repository -y "deb http://apt.llvm.org/$(lsb_release -s -c)/ llvm-toolchain-$(lsb_release -s -c)-7.0 main" > /dev/null 2>&1
+        sudo add-apt-repository -y "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-7.0 main" > /dev/null 2>&1
         sudo apt-get -qq update
   	    sudo apt-get install -y clang-tools-7
         sudo ln -fsn /usr/bin/clangd-7 /usr/bin/clangd
@@ -119,7 +119,7 @@ installTmux() {
         mv ~/.tmux.conf ~/.tmux.conf.dotfiles.bak
     fi
     printInfo "** Adding new .tmux.conf"
-    cp .tmux.conf ~/.tmux.conf
+    cp $DOTFILES/.tmux.conf ~/.tmux.conf
     printInfo "** Installing tmux"
     sudo apt-get -qq install -y tmux
     printInfo "** DONE"

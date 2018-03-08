@@ -247,7 +247,7 @@ echo -e "\e[92m"
 fortune
 echo -e "\e[39m"
 echo -ne "Today is "; date
-echo -e ""; ncal -wM -C;
+echo -e ""; ncal -C;
 echo -ne "\e[91mUptime:\e[39m";uptime | awk /'up/'
 echo "";
 
