@@ -143,7 +143,6 @@ gsettings set org.gnome.desktop.peripherals.keyboard repeat-interval 12
 
 # Local aliases
 alias v='vim'
-alias rest='cd ~/work/ara_Rest'
 
 # Alias definitions.
 # You may want to put all your additions into a separate file like
