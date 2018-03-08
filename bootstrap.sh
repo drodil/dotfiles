@@ -94,7 +94,7 @@ installVim() {
     PKG_OK=$(dpkg-query -W --showformat='${Status}\n' clang-tools-7|grep "install ok installed")
     if [ "" == "$PKG_OK" ]; then
         sudo wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        sudo add-apt-repository -y "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-7.0 main" > /dev/null 2>&1
+        sudo add-apt-repository -y "deb http://apt.llvm.org/$(lsb_release -s -c)/ llvm-toolchain-$(lsb_release -s -c) main" > /dev/null 2>&1
         sudo apt-get -qq update
   	    sudo apt-get install -y clang-tools-7
         sudo ln -fsn /usr/bin/clangd-7 /usr/bin/clangd
@@ -137,6 +137,9 @@ installAll() {
     read -n 1 -s -r -p "Press any key to continue"
     source ~/.bashrc
 }
+
+sudo apt-get -qq install -y curl
+sudo apt-get -qq install -y git
 
 update
 if [ "$INSTALL_TARGET" == "vim" ] ; then
