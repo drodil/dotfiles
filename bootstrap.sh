@@ -38,13 +38,26 @@ if [ -n "$HELP" ]; then
     exit
 fi
 
+installPackage() {
+  PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $1|grep "install ok installed")
+  if [ "" == "$PKG_OK" ]; then
+    echo "--- Installing $1"
+    sudo apt-get -qq install -y $1
+  fi
+}
+
 printInfo() {
-    printf "\033[00;34m$@\033[0m\n"
+    printf "\e[38;5;82m$@\e[0m\n"
 }
 
 update() {
     printInfo "Updating repository"
     git pull origin master > /dev/null 2>&1
+}
+
+reloadBash() {
+   read -n 1 -s -r -p "Press any key to reload bash"
+   source ~/.bashrc
 }
 
 installBash() {
@@ -58,10 +71,13 @@ installBash() {
         mv ~/.bashrc ~/.bashrc.dotfiles.bak
     fi
     printInfo "** Installing fortune"
-    sudo apt-get -qq install -y fortune-mod
+    installPackage fortune-mod
     printInfo "** Adding new .bashrc"
-    cp $DOTFILES/.bashrc ~/.bashrc
+    cp .bashrc ~/.bashrc
     printInfo "** DONE"
+    if [ "$INSTALL_TARGET" == "bash" ] ; then
+      reloadBash
+    fi
 }
 
 installVim() {
@@ -75,33 +91,39 @@ installVim() {
         mv ~/.vimrc ~/.vimrc.dotfiles.bak
     fi
     printInfo "** Adding new .vimrc"
-    mkdir -p ~/.vim
-    mkdir -p ~/.vim/tags
+    mkdir -p .vim
+    mkdir -p .vim/tags
 
-    cp $DOTFLES.vimrc ~/.vim/vimrc
+    cp .vimrc ~/.vim/vimrc
     ln -s ~/.vim/vimrc ~/.vimrc
-    cp $DOTFILES/.vim/tags/cpp ~/.vim/tags/
-    cp $DOTFILES/.vim/tags/generate_tags.sh ~/.vim/tags/
+    cp .vim/tags/cpp ~/.vim/tags/
+    cp .vim/tags/generate_tags.sh ~/.vim/tags/
 
     VIMVERSION=$(vim --version | head -1 | cut -d ' ' -f 5)
     if [ ! $(echo "$VIMVERSION >= 8.0" | bc -l) ]; then
         printInfo "** Installing VIM version 8+"
         sudo add-apt-repository -y ppa:jonathonf/vim > /dev/null 2>&1
         sudo apt-get -qq update
-        sudo apt-get -qq install -y vim
+        installPackage vim
     fi
 
+    printInfo "** Installing clang packages"
     PKG_OK=$(dpkg-query -W --showformat='${Status}\n' clang-tools-7|grep "install ok installed")
     if [ "" == "$PKG_OK" ]; then
         sudo wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
         sudo add-apt-repository -y "deb http://apt.llvm.org/$(lsb_release -s -c)/ llvm-toolchain-$(lsb_release -s -c) main" > /dev/null 2>&1
         sudo apt-get -qq update
-  	    sudo apt-get install -y clang-tools-7
+        installPackage clang-tools-7
         sudo ln -fsn /usr/bin/clangd-7 /usr/bin/clangd
     fi
+    installPackage clang-format-7
+    sudo ln -fsn /usr/bin/clang-format-7 /usr/bin/clang-format
+
+    installPackage clang-tidy-7
+    sudo ln -fsn /usr/bin/clang-tidy-7 /usr/bin/clang-tidy
 
     printInfo "** Installing python-language-server"
-    sudo apt-get -qq install -y python-pip
+    installPackage python-pip
     sudo -H pip install --upgrade python-language-server > /dev/null 2>&1
     printInfo "** Installing VIM plugins"
     vim +PlugInstall +qall
@@ -119,9 +141,9 @@ installTmux() {
         mv ~/.tmux.conf ~/.tmux.conf.dotfiles.bak
     fi
     printInfo "** Adding new .tmux.conf"
-    cp $DOTFILES/.tmux.conf ~/.tmux.conf
+    cp .tmux.conf ~/.tmux.conf
     printInfo "** Installing tmux"
-    sudo apt-get -qq install -y tmux
+    installPackage tmux
     printInfo "** DONE"
 }
 
@@ -134,13 +156,10 @@ installAll() {
     printInfo "----"
     installTmux
     printInfo "Installation DONE"
-    read -n 1 -s -r -p "Press any key to continue"
-    source ~/.bashrc
+    reloadBash
 }
 
-sudo apt-get -qq install -y curl
-sudo apt-get -qq install -y git
-
+installPackage git
 update
 if [ "$INSTALL_TARGET" == "vim" ] ; then
     installVim
