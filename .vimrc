@@ -1,4 +1,4 @@
-" Vim configuration fil/
+" Vim configuration
 "
 " Tuned for c++ development. Requires python language server for
 " autocomplete features. Please install it by
@@ -32,10 +32,10 @@ Plug 'ciaranm/detectindent'
 " Git plugins
 Plug 'tpope/vim-fugitive'
 Plug 'airblade/vim-gitgutter'
+" Vim templates support
+Plug 'aperezdc/vim-template'
 " Clang-format
 Plug 'rhysd/vim-clang-format'
-" Solarized colors
-Plug 'altercation/vim-colors-solarized'
 " Netwr enchancement
 Plug 'tpope/vim-vinegar'
 " FZF
@@ -43,13 +43,18 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 " Cmake building
 Plug 'vhdirk/vim-cmake'
+" Easy commenting
+Plug 'tpope/vim-commentary'
 " Autocomplete
 " Plug 'Valloric/YouCompleteMe', { 'do': './install.py --system-libclang --clang-completer' }
+" Requires clangd-7 to work properly
 Plug 'prabirshrestha/async.vim'
 Plug 'prabirshrestha/vim-lsp'
 Plug 'prabirshrestha/asyncomplete.vim'
 Plug 'prabirshrestha/asyncomplete-lsp.vim'
 Plug 'prabirshrestha/asyncomplete-buffer.vim'
+Plug 'prabirshrestha/asyncomplete-tags.vim'
+Plug 'townk/vim-autoclose'
 " Async execution
 Plug 'shougo/vimproc', { 'do': 'make' }
 " Cool statusline
@@ -59,14 +64,14 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'vim-scripts/doxygentoolkit.vim', { 'for': 'cpp' }
 " Switch between declaration and definition
 Plug 'vim-scripts/a.vim'
+" Buffer explorer
+Plug 'jlanzarotta/bufexplorer'
 " Syntax higlighting
 Plug 'octol/vim-cpp-enhanced-highlight', { 'for': 'cpp' }
 " Surround handling
 Plug 'tpope/vim-surround'
 " Allow repeat for plugins
 Plug 'tpope/vim-repeat'
-" Ctrl+P file search
-Plug 'ctrlpvim/ctrlp.vim'
 " Nice colors
 Plug 'morhetz/gruvbox'
 call plug#end()            " required
@@ -78,11 +83,10 @@ if $SSH_CONNECTION
   let g:solarized_termtrans=0
   let g:solarized_termcolors=256
 endif
-try
-   colorscheme gruvbox
-   catch /^Vim\%((\a\+)\)\=:E185/
-      echo "Solarized colorsceme not available"
-endtry
+
+if filereadable( expand("$HOME/.vim/plugged/gruvbox/package.json") )
+  colorscheme gruvbox
+endif
 
 " set UTF-8 encoding
 set enc=utf-8
@@ -109,10 +113,11 @@ set showmode                    " Show current mode
 set nobackup                    " No backup file
 set noswapfile                  " No swap file
 " show line number
-set number relativenumber
+set number
 " Mouse
 set mousehide                   " Hide mouse when typing
 set mouse=nicr                  " Disable mouse
+set ttyfast
 " Disable bell
 set visualbell                  " Disable visual bell
 set noerrorbells                " Disable error bell
@@ -124,6 +129,7 @@ set ignorecase
 set smartcase
 set incsearch       " do incremental searching
 set hlsearch
+set gdefault
 " wordwrap
 set nowrap
 set sidescroll=15
@@ -150,6 +156,19 @@ set completeopt=longest,menuone,preview
 " misc
 set title
 
+"   Correct some spelling mistakes    "
+ia teh      the
+ia htis     this
+ia tihs     this
+ia funciton function
+ia fucntion function
+ia funtion  function
+ia retunr   return
+ia reutrn   return
+ia sefl     self
+ia eslf     self
+ia viod     void
+
 highlight ExtraWhitespace ctermbg=red guibg=red
 match ExtraWhitespace /\s\+$/
 autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
@@ -164,14 +183,19 @@ let g:netrw_banner=0
 " alternate settings
 let g:alternateSearchPath='reg:|src/\([^/]*\)|inc/\1||,reg:|inc/\([^/]*\)|src/\1||,sfr:../source,sfr:../src,sfr:../include,sfr:../inc'
 
+" Template settings
+let g:templates_no_autocmd=1
+let g:templates_directory=['~/.vim/templates']
+let g:templates_global_name_prefix='tpl'
+
 " clang format settings
 let g:clang_format#detect_style_file=1
 let g:clang_format#auto_format=1
 let g:clang_format#auto_format_on_insert_leave=1
-autocmd FileType c ClangFormatAutoEnable
-autocmd FileType h ClangFormatAutoEnable
-autocmd FileType cpp ClangFormatAutoEnable
-autocmd FileType hpp ClangFormatAutoEnable
+autocmd FileType c silent! ClangFormatAutoEnable
+autocmd FileType h silent! ClangFormatAutoEnable
+autocmd FileType cpp silent! ClangFormatAutoEnable
+autocmd FileType hpp silent! ClangFormatAutoEnable
 
 " Ctrlp settings
 let g:ctrlp_custom_ignore = {
@@ -181,20 +205,35 @@ let g:ctrlp_custom_ignore = {
 let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
 
 " Autocomplete
-if executable('clangd')
+
+if filereadable( expand("$HOME/.vim/plugged/vim-lsp/plugin/lsp.vim") )
+  if executable('clangd')
     au User lsp_setup call lsp#register_server({
         \ 'name': 'clangd',
+        \ 'priority': 5,
         \ 'cmd': {server_info->['clangd']},
-        \ 'whitelist': ['c', 'hpp', 'h', 'cpp', 'objc', 'objcpp'],
-        \ })
+        \ 'whitelist': ['c', 'cpp', 'objc', 'objcpp'],
+    \ })
+  endif
 endif
 
-call asyncomplete#register_source(asyncomplete#sources#buffer#get_source_options({
-    \ 'name': 'buffer',
-    \ 'whitelist': ['*'],
-    \ 'blacklist': ['go'],
-    \ 'completor': function('asyncomplete#sources#buffer#completor'),
-    \ }))
+if filereadable( expand("$HOME/.vim/plugged/asyncomplete.vim/plugin/asyncomplete.vim") )
+  call asyncomplete#register_source(asyncomplete#sources#buffer#get_source_options({
+      \ 'name': 'buffer',
+      \ 'whitelist': ['cpp', 'hpp', 'c', 'h'],
+      \ 'blacklist': ['go'],
+      \ 'completor': function('asyncomplete#sources#buffer#completor'),
+      \ }))
+
+  au User asyncomplete_setup call asyncomplete#register_source(asyncomplete#sources#tags#get_source_options({
+      \ 'name': 'tags',
+      \ 'whitelist': ['c', 'cpp', 'h', 'hpp', 'objc', 'objcpp'],
+      \ 'completor': function('asyncomplete#sources#tags#completor'),
+      \ 'config': {
+      \    'max_file_size': 50000000,
+      \  },
+      \ }))
+endif
 
 inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
@@ -218,7 +257,6 @@ command! -bang -nargs=? -complete=dir Files
   \ call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
 
 let g:fzf_nvim_statusline = 0 " disable statusline overwriting
-let $FZF_DEFAULT_COMMAND = 'ag -g ""'
 let $FZF_DEFAULT_OPTS .= ' --bind=up:preview-up,down:preview-down'
 
 " Key bindings
@@ -233,7 +271,8 @@ map ยง $
 imap ยง $
 vmap ยง $
 cmap ยง $
-
+" Add newline from normal mode
+nmap <C-S> o<Esc>k<CR>
 " buffer resizing
 map <silent> <S-h> <C-W>10<
 map <silent> <S-j> <C-W>10-
@@ -262,6 +301,7 @@ map   <silent> <F8>        :cn<CR>
 " fzf. Former with prefix.
 map <silent> <F10> :Files!<CR>
 map <silent> <F11> :FZF<CR>
+map <F12> :!bash $HOME/.vim/tags/generate_tags.sh -d . -i "build docs"<CR>
 "}}}
 
 " map searches
@@ -301,3 +341,125 @@ augroup reload_vimrc
     autocmd!
     autocmd BufWritePost $MYVIMRC source $MYVIMRC
 augroup end
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" {{{ Ruby settings
+"
+autocmd FileType ruby set shiftwidth=2
+augroup filetypedetect
+    autocmd BufNewFile,BufRead *.yml setf eruby
+augroup END
+"}}}
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" {{{ Perl settings
+"
+autocmd FileType perl set shiftwidth=2
+"}}}
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" {{{ Tex settings
+"
+autocmd FileType tex set shiftwidth=2
+autocmd FileType tex let g:tex_flavor = "latex"
+"}}}
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" {{{ JavaScript settings
+"
+au FileType javascript call JavaScriptSettings()
+function! JavaScriptSettings()
+    setl nocindent
+endfunction
+"}}}
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Python settings {{{
+"
+au FileType python call PythonSettings()
+function! PythonSettings()
+    set nocindent
+    "autocmd BufWrite *.py :call DeleteTrailingWS()
+endfunction
+"}}}
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Bitbake settings {{{
+"
+au FileType bitbake call BibakeSettings()
+function! BibakeSettings()
+    set nocindent
+    "autocmd BufWrite *.bb :call DeleteTrailingWS()
+    "autocmd BufWrite *.bbclass :call DeleteTrailingWS()
+    "autocmd BufWrite *.bbappend :call DeleteTrailingWS()
+endfunction
+"}}}
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Bash settings {{{
+"
+function! BashSettings()
+    setl expandtab
+    setl shiftwidth=2
+    setl tabstop=2
+    setl softtabstop=2
+endfunction
+"}}}
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" CMake settings {{{
+"
+autocmd BufRead,BufNewFile *.cmake,CMakeLists.txt,*.cmake.in call CMakeSettings()
+function! CMakeSettings()
+    setl expandtab
+    setl shiftwidth=4
+    setl tabstop=4
+    setl softtabstop=4
+endfunction
+"}}}
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Rust settings {{{
+"
+au FileType rust nmap gd <Plug>(rust-def)
+au FileType rust nmap gs <Plug>(rust-def-split)
+au FileType rust nmap gx <Plug>(rust-def-vertical)
+au FileType rust nmap <leader>gd <Plug>(rust-doc)
+au FileType rust compiler cargo
+"}}}
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Makefiles {{{
+"
+au FileType make setl noexpandtab " use real tabs
+au FileType make setl shiftwidth=8 " standard shift width
+au FileType make setl tabstop=8 " use standard tab size
+
+"}}}
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" binary files {{{
+"
+augroup Binary " vim -b : edit binary using xxd-format!
+    au!
+    au BufReadPre  *.tgz,*.BIN,*.bin,*.img let &bin=1
+    au BufReadPost *.tgz,*.BIN,*.bin,*.img if &bin | %!xxd
+    au BufReadPost *.tgz,*.BIN,*.bin,*.img set ft=xxd | endif
+    au BufWritePre *.tgz,*.BIN,*.bin,*.img if &bin | %!xxd -r
+    au BufWritePre *.tgz,*.BIN,*.bin,*.img endif
+    au BufWritePost *.tgz,*.BIN,*.bin,*.img if &bin | %!xxd
+    au BufWritePost *.tgz,*.BIN,*.bin,*.img set nomod | endif
+augroup END
+"}}}
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+

@@ -1,0 +1,56 @@
+# macOS
+*.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# Tags
+TAGS
+.TAGS
+!TAGS/
+tags
+.tags
+!tags/
+
+# Ninja
+.ninja_deps
+.ninja_log
+
+# VSCode
+.vscode
+
+# CMake
+compile_commands.json
+
+# LSP
+cquery_diagnostics.log
+.ropeproject
