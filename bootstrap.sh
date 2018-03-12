@@ -159,6 +159,7 @@ installVim() {
 
   PKG_OK=$(dpkg-query -W --showformat='${Status}\n' clang-tools-7 | grep "install ok installed") > /dev/null 2>&1
   if [ "" == "$PKG_OK" ]; then
+    printInfo "** Installing clang tools"
     installPackage clang-tools-7
     sudo ln -fsn /usr/bin/clangd-7 /usr/bin/clangd
     if [ ! type "clang-format" > /dev/null ]; then
@@ -171,6 +172,10 @@ installVim() {
       sudo ln -fsn /usr/bin/clang-tidy-7 /usr/bin/clang-tidy
     fi
   fi
+
+  printInfo "** Installing default .clang-format"
+  backupConfiguration ~/.clang-format
+  cp $DOTFILES/.clang-format ~
 
   printInfo "** Installing python-language-server"
   installPackage python-pip
