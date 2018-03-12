@@ -139,6 +139,7 @@ installVim() {
   cp $DOTFILES/.vim/templates/* ~/.vim/templates/
 
   installPackage vim
+  installPackage silversearcher-ag
   installPackage curl
   VIMVERSION=$(vim --version | head -1 | cut -d ' ' -f 5)
   if [ ! $(echo "$VIMVERSION >= 8.0" | bc -l) ]; then

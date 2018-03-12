@@ -257,6 +257,10 @@ command! -bang -nargs=? -complete=dir Files
   \ call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
 
 let g:fzf_nvim_statusline = 0 " disable statusline overwriting
+if executable('ag')
+   let $FZF_DEFAULT_COMMAND = 'ag -g ""'
+   let g:ackprg = 'ag --vimgrep'
+endif
 let $FZF_DEFAULT_OPTS .= ' --bind=up:preview-up,down:preview-down'
 
 " Key bindings
@@ -341,6 +345,18 @@ augroup reload_vimrc
     autocmd!
     autocmd BufWritePost $MYVIMRC source $MYVIMRC
 augroup end
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Toggle Vexplore {{{
+"
+function! ToggleExplore()
+    if &ft ==# "netrw"
+         Rexplore
+    else
+         Explore
+    endif
+endfunction
+" }}}
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " {{{ Ruby settings
