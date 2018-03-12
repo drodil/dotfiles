@@ -65,7 +65,7 @@ installPackage() {
     printInfo "!!! Package $1 is not available for installation"
     return
   fi
-  PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $1|grep "install ok installed" 2>&1)
+  PKG_OK=$({ dpkg-query -W --showformat='${Status}\n' $1|grep "install ok installed"; } 2>&1)
   if [ -z "$PKG_OK" ]; then
     printInfo "** Installing $1"
     sudo apt-get -qq install -y $1 > /dev/null
@@ -185,6 +185,11 @@ installTmux() {
   printInfo "** Adding new .tmux.conf"
   cp $DOTFILES/.tmux.conf ~/.tmux.conf
   installPackage tmux
+  installPackage xsel
+  printInfo "** Installing plugin manager"
+  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm > /dev/null 2>&1
+  printInfo "** Installing plugins"
+  ~/.tmux/plugins/tpm/scripts/install_plugins.sh > /dev/null 2>&1
   printInfo "** DONE"
 }
 
