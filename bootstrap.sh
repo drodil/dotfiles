@@ -207,6 +207,11 @@ installCppEnv() {
   installPackage python-pip
   installPackage ninja-build
   installPackage gdb
+  installPackage subversion
+  installPackage valgrind
+  installPackage libboost-all-dev
+  installPackage autotools-dev
+  installPackage autoconf
 
   # Install CPP lint and CPP clean
   sudo -H pip install -q --upgrade pip
