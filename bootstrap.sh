@@ -135,10 +135,13 @@ installVim() {
   cp $DOTFILES/.vimrc ~/.vim/vimrc
   ln -s ~/.vim/vimrc ~/.vimrc
   cp $DOTFILES/.vim/tags/cpp ~/.vim/tags/
+  backupConfiguration ~/.vim/.ycm_extra_conf.py
+  cp $DOTFILES/.vim/.ycm_extra_conf ~/.vim/
   cp $DOTFILES/.vim/tags/generate_tags.sh ~/.vim/tags/
   cp $DOTFILES/.vim/templates/* ~/.vim/templates/
 
   installPackage vim
+  installPackage ctags
   installPackage silversearcher-ag
   installPackage curl
   VIMVERSION=$(vim --version | head -1 | cut -d ' ' -f 5)
@@ -222,6 +225,8 @@ installCppEnv() {
   installPackage libboost-all-dev
   installPackage autotools-dev
   installPackage autoconf
+  installPackage python-dev
+  installPackage python3-dev
 
   # Install CPP lint and CPP clean
   sudo -H pip install -q --upgrade pip

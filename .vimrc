@@ -46,14 +46,14 @@ Plug 'vhdirk/vim-cmake'
 " Easy commenting
 Plug 'tpope/vim-commentary'
 " Autocomplete
-" Plug 'Valloric/YouCompleteMe', { 'do': './install.py --system-libclang --clang-completer' }
+Plug 'Valloric/YouCompleteMe', { 'do': './install.py --system-libclang --clang-completer' }
 " Requires clangd-7 to work properly
-Plug 'prabirshrestha/async.vim'
-Plug 'prabirshrestha/vim-lsp'
-Plug 'prabirshrestha/asyncomplete.vim'
-Plug 'prabirshrestha/asyncomplete-lsp.vim'
-Plug 'prabirshrestha/asyncomplete-buffer.vim'
-Plug 'prabirshrestha/asyncomplete-tags.vim'
+" Plug 'prabirshrestha/async.vim'
+" Plug 'prabirshrestha/vim-lsp'
+" Plug 'prabirshrestha/asyncomplete.vim'
+" Plug 'prabirshrestha/asyncomplete-lsp.vim'
+" Plug 'prabirshrestha/asyncomplete-buffer.vim'
+" Plug 'prabirshrestha/asyncomplete-tags.vim'
 Plug 'townk/vim-autoclose'
 " Async execution
 Plug 'shougo/vimproc', { 'do': 'make' }
@@ -204,17 +204,14 @@ let g:ctrlp_custom_ignore = {
   \ }
 let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
 
-" Autocomplete
-
-if filereadable( expand("$HOME/.vim/plugged/vim-lsp/plugin/lsp.vim") )
-  if executable('clangd')
-    au User lsp_setup call lsp#register_server({
-        \ 'name': 'clangd',
-        \ 'priority': 5,
-        \ 'cmd': {server_info->['clangd']},
-        \ 'whitelist': ['c', 'cpp', 'objc', 'objcpp'],
-    \ })
-  endif
+" Autocomplete with vim-lsp
+if filereadable( expand("$HOME/.vim/plugged/vim-lsp/plugin/lsp.vim") ) && executable('clangd')
+  au User lsp_setup call lsp#register_server({
+          \ 'name': 'clangd',
+          \ 'cmd': {server_info->['clangd']},
+          \ 'whitelist': ['c', 'cpp', 'objc', 'objcpp'],
+          \ })
+  let g:lsp_log_file='/home/hehe270060/vim_lsp.log'
 endif
 
 if filereadable( expand("$HOME/.vim/plugged/asyncomplete.vim/plugin/asyncomplete.vim") )
@@ -233,16 +230,15 @@ if filereadable( expand("$HOME/.vim/plugged/asyncomplete.vim/plugin/asyncomplete
       \    'max_file_size': 50000000,
       \  },
       \ }))
+  inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+  inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+  inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
+  imap <c-space> <Plug>(asyncomplete_force_refresh)
+  let g:asyncomplete_remove_duplicates = 1
 endif
 
-inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
-imap <c-space> <Plug>(asyncomplete_force_refresh)
-let g:asyncomplete_remove_duplicates = 1
-
-" Autocomplete for YouCompleteMe (disabled plugin)
-let g:ycm_extra_conf_globlist=['~/.vim/*']
+" Autocomplete for YouCompleteMe
+let g:ycm_extra_conf_globlist=['prj/*']
 let g:ycm_global_ycm_extra_conf='~/.vim/.ycm_extra_conf.py'
 let g:ycm_collect_identifiers_from_tags_files=1
 let g:ycm_error_symbol='✗'
