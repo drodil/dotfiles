@@ -103,6 +103,7 @@ set expandtab        " expand tabs to spaces
 " wrap lines at 120 chars. 80 is somewaht antiquated with nowadays displays.
 set textwidth=120
 set backspace=indent,eol,start  " Delete over line breaks
+set whichwrap+=<,>,h,l
 set laststatus=2                " Always display the status line
 set lazyredraw                  " Use lazy redrawing
 set ruler                       " Show ruler
@@ -121,6 +122,10 @@ set ttyfast
 " Disable bell
 set visualbell                  " Disable visual bell
 set noerrorbells                " Disable error bell
+" Change buffer without saving
+set hid
+" Regex support with magic
+set magic
 " Spell checking
 set spelllang=en_us             " English as default language
 set spell                       " Enable by default
@@ -151,8 +156,6 @@ if has('persistent_undo')
    set undolevels=1000         " Max number of changes
    set undoreload=10000        " Max lines to save for undo on a buffer reload
 endif
-" Make completion menu behave like an IDE
-set completeopt=longest,menuone,preview
 " misc
 set title
 
@@ -238,14 +241,9 @@ if filereadable( expand("$HOME/.vim/plugged/asyncomplete.vim/plugin/asyncomplete
 endif
 
 " Autocomplete for YouCompleteMe
-let g:ycm_extra_conf_globlist=['prj/*']
 let g:ycm_global_ycm_extra_conf='~/.vim/.ycm_extra_conf.py'
-let g:ycm_collect_identifiers_from_tags_files=1
 let g:ycm_error_symbol='✗'
 let g:ycm_warning_symbol='▲'
-let g:ycm_key_select_completion = '<Enter>'
-let g:ycm_add_preview_to_completeopt = 1
-let g:ycm_autoclose_preview_window_after_completion = 1
 nnoremap <leader>jd :YcmCompleter GoTo<CR>
 
 " fzf settings
