@@ -10,30 +10,51 @@ flags = [
     '-x', 'c++',
     '-I', '/usr/include',
     '-I', '.'
-]
-
+    ]
+f = open('debug.log', 'a')
 compilation_database_folder = None
 if os.environ.has_key('YCM_BLD_DIR'):
-    compilation_database_folder = os.environ['YCM_BLD_DIR']
+  compilation_database_folder = os.environ['YCM_BLD_DIR']
 elif os.path.exists(os.path.join(os.getcwd(), 'compile_commands.json')):
-    compilation_database_folder = os.getcwd()
+  compilation_database_folder = os.getcwd()
 else:
-    current_source = os.getcwd()
-    builds = [ current_source + '/build/', current_source + '/bin/', os.path.abspath(current_source + '../build/') ]
-    for build in builds:
-        first_build = build
-        if os.path.exists(os.path.join(build, 'compile_commands.json')):
-            compilation_database_folder = build
-            break
+  current_source = os.getcwd()
+  builds = [ current_source + '/build/', current_source + '/bin/', os.path.abspath(current_source + '../build/') ]
+  for build in builds:
+    first_build = build
+    if os.path.exists(os.path.join(build, 'compile_commands.json')):
+      compilation_database_folder = build
+      break
 
 if compilation_database_folder:
-    database = ycm_core.CompilationDatabase( compilation_database_folder )
+  database = ycm_core.CompilationDatabase( compilation_database_folder )
 else:
-    database = None
+  database = None
 
+SOURCE_EXTENSIONS = [ '.cpp', '.cxx', '.cc', '.c', '.m', '.mm' ]
 
 def DirectoryOfThisScript():
   return os.path.dirname( os.path.abspath( __file__ ) )
+
+def IsHeaderFile( filename ):
+  extension = os.path.splitext( filename )[ 1 ]
+  return extension in [ '.h', '.hxx', '.hpp', '.hh' ]
+
+def FindCorrespondingSourceFile( filename ):
+  if IsHeaderFile( filename ):
+    basename = os.path.splitext( filename )[ 0 ]
+    for extension in SOURCE_EXTENSIONS:
+      replacement_file = basename + extension
+      if os.path.exists( replacement_file ):
+        return replacement_file
+      src_file = replacement_file.replace("inc", "src")
+      if os.path.exists( src_file ):
+        return src_file
+      src_file = replacement_file.replace("include", "src")
+      if os.path.exists( src_file ):
+        return src_file
+
+  return filename
 
 def MakeRelativePathsInFlagsAbsolute( flags, working_directory ):
   if not working_directory:
@@ -61,20 +82,23 @@ def MakeRelativePathsInFlagsAbsolute( flags, working_directory ):
 
     if new_flag:
       new_flags.append( new_flag )
+
   return new_flags
 
 
 def FlagsForFile( filename ):
+  filename = FindCorrespondingSourceFile( filename )
   if database:
     compilation_info = database.GetCompilationInfoForFile( filename )
     final_flags = MakeRelativePathsInFlagsAbsolute(
-      compilation_info.compiler_flags_,
-      compilation_info.compiler_working_dir_ )
+            compilation_info.compiler_flags_,
+            compilation_info.compiler_working_dir_ )
   else:
     relative_to = DirectoryOfThisScript()
     final_flags = MakeRelativePathsInFlagsAbsolute( flags, relative_to )
 
   return {
-    'flags': final_flags,
-    'do_cache': True
-  }
+        'flags': final_flags,
+        'do_cache': True,
+        'override_filename': filename
+        }

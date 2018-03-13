@@ -54,7 +54,7 @@ Plug 'Valloric/YouCompleteMe', { 'do': './install.py --system-libclang --clang-c
 " Plug 'prabirshrestha/asyncomplete-lsp.vim'
 " Plug 'prabirshrestha/asyncomplete-buffer.vim'
 " Plug 'prabirshrestha/asyncomplete-tags.vim'
-Plug 'townk/vim-autoclose'
+" Plug 'townk/vim-autoclose'
 " Async execution
 Plug 'shougo/vimproc', { 'do': 'make' }
 " Cool statusline
@@ -244,7 +244,6 @@ endif
 let g:ycm_global_ycm_extra_conf='~/.vim/.ycm_extra_conf.py'
 let g:ycm_error_symbol='✗'
 let g:ycm_warning_symbol='▲'
-nnoremap <leader>jd :YcmCompleter GoTo<CR>
 
 " fzf settings
 command! -bang -nargs=? -complete=dir Files
@@ -260,6 +259,11 @@ let $FZF_DEFAULT_OPTS .= ' --bind=up:preview-up,down:preview-down'
 " Key bindings
 let mapleader = ","
 let g:mapleader = ","
+
+nnoremap <leader>jd :YcmCompleter GoToDefinition<CR>
+nnoremap <leader>jj :YcmCompleter GoToDefinitionElseDeclaration<CR>
+nnoremap <leader>jg :YcmCompleter GoToDeclaration<CR>
+nnoremap <leader>jk :YcmCompleter GoToInclude<CR>
 
 " Fix tabs on new line
 inoremap <C-Return> <CR><CR><C-o>k<Tab>
@@ -393,6 +397,7 @@ endfunction
 au FileType python call PythonSettings()
 function! PythonSettings()
     set nocindent
+    set shiftwidth=2
     "autocmd BufWrite *.py :call DeleteTrailingWS()
 endfunction
 "}}}
