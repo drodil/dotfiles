@@ -157,21 +157,19 @@ installVim() {
    sudo apt-get -qq update
  fi
 
-  PKG_OK=$(dpkg-query -W --showformat='${Status}\n' clang-tools-7 | grep "install ok installed") > /dev/null 2>&1
-  if [ "" == "$PKG_OK" ]; then
-    printInfo "** Installing clang tools"
-    installPackage clang-tools-7
-    sudo ln -fsn /usr/bin/clangd-7 /usr/bin/clangd
-    if [ ! type "clang-format" > /dev/null ]; then
-      installPackage clang-format-7
-      sudo ln -fsn /usr/bin/clang-format-7 /usr/bin/clang-format
-    fi
-
-    if [ ! type "clang-tidy" > /dev/null ]; then
-      installPackage clang-tidy-7
-      sudo ln -fsn /usr/bin/clang-tidy-7 /usr/bin/clang-tidy
-    fi
-  fi
+ printInfo "** Installing clang tools"
+ installPackage clang-tools-7
+ installPackage clang-format-7
+ installPackage clang-tidy-7
+ if [ ! -e "/usr/bin/clangd" ]; then
+   sudo ln -fsn /usr/bin/clangd-7 /usr/bin/clangd
+ fi
+ if [ ! -e "/usr/bin/clang-format" ]; then
+   sudo ln -fsn /usr/bin/clang-format-7 /usr/bin/clang-format
+ fi
+ if [ ! -e "/usr/bin/clang-tidy" ]; then
+   sudo ln -fsn /usr/bin/clang-tidy-7 /usr/bin/clang-tidy
+ fi
 
   printInfo "** Installing default .clang-format"
   backupConfiguration ~/.clang-format
