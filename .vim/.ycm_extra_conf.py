@@ -11,7 +11,6 @@ flags = [
     '-I', '/usr/include',
     '-I', '.'
     ]
-f = open('debug.log', 'a')
 compilation_database_folder = None
 if os.environ.has_key('YCM_BLD_DIR'):
   compilation_database_folder = os.environ['YCM_BLD_DIR']
