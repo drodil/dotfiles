@@ -47,14 +47,6 @@ Plug 'vhdirk/vim-cmake'
 Plug 'tpope/vim-commentary'
 " Autocomplete
 Plug 'Valloric/YouCompleteMe', { 'do': './install.py --system-libclang --clang-completer' }
-" Requires clangd-7 to work properly
-" Plug 'prabirshrestha/async.vim'
-" Plug 'prabirshrestha/vim-lsp'
-" Plug 'prabirshrestha/asyncomplete.vim'
-" Plug 'prabirshrestha/asyncomplete-lsp.vim'
-" Plug 'prabirshrestha/asyncomplete-buffer.vim'
-" Plug 'prabirshrestha/asyncomplete-tags.vim'
-" Plug 'townk/vim-autoclose'
 " Async execution
 Plug 'shougo/vimproc', { 'do': 'make' }
 " Cool statusline
@@ -117,7 +109,8 @@ set noswapfile                  " No swap file
 set number
 " Mouse
 set mousehide                   " Hide mouse when typing
-set mouse=nicr                  " Disable mouse
+"set mouse=nicr                  " Disable mouse
+set mouse=a
 set ttyfast
 " Disable bell
 set visualbell                  " Disable visual bell
@@ -172,6 +165,7 @@ ia sefl     self
 ia eslf     self
 ia viod     void
 
+" Remove extra whitespace automatically
 highlight ExtraWhitespace ctermbg=red guibg=red
 match ExtraWhitespace /\s\+$/
 autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
@@ -199,46 +193,6 @@ autocmd FileType c silent! ClangFormatAutoEnable
 autocmd FileType h silent! ClangFormatAutoEnable
 autocmd FileType cpp silent! ClangFormatAutoEnable
 autocmd FileType hpp silent! ClangFormatAutoEnable
-
-" Ctrlp settings
-let g:ctrlp_custom_ignore = {
-  \ 'dir':  '\v[\/]\.(git|hg|svn)|build|stage$',
-  \ 'file': '\v\.(exe|so|dll)$'
-  \ }
-let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
-
-" Autocomplete with vim-lsp
-if filereadable( expand("$HOME/.vim/plugged/vim-lsp/plugin/lsp.vim") ) && executable('clangd')
-  au User lsp_setup call lsp#register_server({
-          \ 'name': 'clangd',
-          \ 'cmd': {server_info->['clangd']},
-          \ 'whitelist': ['c', 'cpp', 'objc', 'objcpp'],
-          \ })
-  let g:lsp_log_file='/home/hehe270060/vim_lsp.log'
-endif
-
-if filereadable( expand("$HOME/.vim/plugged/asyncomplete.vim/plugin/asyncomplete.vim") )
-  call asyncomplete#register_source(asyncomplete#sources#buffer#get_source_options({
-      \ 'name': 'buffer',
-      \ 'whitelist': ['cpp', 'hpp', 'c', 'h'],
-      \ 'blacklist': ['go'],
-      \ 'completor': function('asyncomplete#sources#buffer#completor'),
-      \ }))
-
-  au User asyncomplete_setup call asyncomplete#register_source(asyncomplete#sources#tags#get_source_options({
-      \ 'name': 'tags',
-      \ 'whitelist': ['c', 'cpp', 'h', 'hpp', 'objc', 'objcpp'],
-      \ 'completor': function('asyncomplete#sources#tags#completor'),
-      \ 'config': {
-      \    'max_file_size': 50000000,
-      \  },
-      \ }))
-  inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-  inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-  inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
-  imap <c-space> <Plug>(asyncomplete_force_refresh)
-  let g:asyncomplete_remove_duplicates = 1
-endif
 
 " Autocomplete for YouCompleteMe
 let g:ycm_global_ycm_extra_conf='~/.vim/.ycm_extra_conf.py'
