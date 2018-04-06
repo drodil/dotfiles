@@ -107,6 +107,7 @@ installGit() {
   installPackage git-svn
   installPackage gitk
   backupConfiguration ~/.gitignore_global
+  cp $DOTFILES/.gitignore_global ~/.gitignore_global
   git config --global core.excludesfile ~/.gitignore_global
   printInfo "** DONE"
 }
