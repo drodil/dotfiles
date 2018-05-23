@@ -243,6 +243,7 @@ installMisc() {
   installPackage htop
   installPackage unrar
   installPackage gparted
+  installPackage golang-go
 
   # Chrome
   PKG_AV=$(sudo apt-cache search google-chrome-stable)

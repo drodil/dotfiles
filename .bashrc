@@ -133,10 +133,6 @@ alias .....='cd ../../../..'
 # cd into the old directory
 alias bd='cd "$OLDPWD"'
 
-# Add an "alert" alias for long running commands.  Use like so:
-#   sleep 10; alert
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
-
 # Faster keystrokes
 gsettings set org.gnome.desktop.peripherals.keyboard delay 300
 gsettings set org.gnome.desktop.peripherals.keyboard repeat-interval 20
@@ -240,6 +236,12 @@ bind '"\e[B": history-search-forward'
 export EDITOR='vim'
 export VISUAL='vim'
 
+# Golang settings
+export GOPATH=$HOME/go
+if [ -d "$HOME/go/bin" ] ; then
+    PATH="$HOME/go/bin:$PATH"
+fi
+
 # Start messages for new bash window
 clear
 echo -e "\e[1mWelcome, $USER\e[0m"
@@ -251,6 +253,5 @@ echo -e ""; ncal -C;
 echo -ne "\e[91mUptime:\e[39m";uptime | awk /'up/'
 echo "";
 
-#export MAKE_CORE_COUNT=4
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
