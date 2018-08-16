@@ -253,6 +253,8 @@ installMisc() {
     sudo apt-get -qq update
   fi
   installPackage google-chrome-stable
+  backupConfiguration ~/.gitconfig
+  cp $DOTFILES/.gitconfig ~/.gitconfig
   printInfo "** DONE"
 }
 

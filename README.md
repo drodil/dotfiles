@@ -27,7 +27,6 @@ with the ones in the repository. You will also need to install required packages
 
 TODO:
 * SSH config
-* GIT config
 * Fonts
 * CCache
 * Valgrind

@@ -1,0 +1,137 @@
+# Core configuration
+[core]
+    editor = /usr/bin/vim
+    excludesfile = ~/.gitignore_global
+    pager=less -x4
+
+# User configuration
+[user]
+    email = heiccih@gmail.com
+    name = Heikki Hellgren
+
+# Included configurations
+[include]
+    path = ~/.git-sendemail
+
+# Coloring
+[color]
+    ui = auto
+    branch = auto
+    diff = auto
+    status = auto
+
+# Branch coloring
+[color "branch"]
+    current = red reverse
+    local = blue
+    remote = green
+
+# Diff coloring
+[color "diff"]
+    meta = yellow
+    frag = magenta
+    old = red bold
+    new = green
+    plain = white
+
+# Status coloring
+[color "status"]
+    added = yellow
+    changed = green
+    untracked = cyan
+
+[push]
+    default = current
+
+[pull]
+    default = current
+
+[diff]
+    mnemonicprefix = true
+
+[branch]
+    autosetuprebase = always
+
+[alias]
+    # Common
+    st = status -s
+    cl = clone
+    ci = commit
+    co = checkout
+    br = branch
+    r = reset
+    cp = cherry-pick
+    gr = grep -Ii
+    diff = diff --word-diff
+    branch = branch -ra
+    grep = grep -Ii
+    bra = branch -ra
+    ai = add --interactive
+    f = "!git ls-files | grep -i"
+    cm = commit -m
+    cma = commit -a -m
+    ca = commit --amend
+    amend = commit --amend
+    caa = commit -a --amend -C HEAD
+    undo = reset --hard
+    rv = checkout --
+    unstage = reset HEAD
+    url = remote -v
+    lasttag = describe --tags --abrev=0
+    ac = !git add . && git add -u && git commit -a
+    acm = "!f() { git add . && git commit -m \"$(echo $@)\"; }; f"
+
+    # Log aliases
+    lp = log -p
+    rank = shortlog -n -s --no-merges
+    ls = log --pretty=format:"%C(green)%h\\ %C(yellow)[%ad]%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --date=relative
+    ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --numstat
+    lf = log --pretty=fuller
+    lc  = "!f() { git ll "$1"^.."$1"; }; f"
+    lnc = log --pretty=format:"%h\\ %s\\ [%cn]"
+    fl = log -u
+    filelog = log -u
+
+    # Diffing
+    d = diff --word-diff
+    dc = diff --cached
+    dlc = diff --cached HEAD^
+    dr  = "!f() { git diff -w "$1"^.."$1"; }; f"
+    diffr  = "!f() { git diff "$1"^.."$1"; }; f"
+
+    # Reseting
+    r1 = reset HEAD^
+    r2 = reset HEAD^^
+    rh = reset --hard
+    rh1 = reset HEAD^ --hard
+    rh2 = reset HEAD^^ --hard
+
+    # Stashing
+    sl = stash list
+    sa = stash apply
+    ss = stash save
+
+    # Checkout
+    ours = "!f() { git co --ours $@ && git add $@; }; f"
+    theirs = "!f() { git co --theirs $@ && git add $@; }; f"
+
+    # Workflow
+    #
+    ## Starts feature branch from master
+    start = "!f(){ b=$1; git checkout master; git fetch; git rebase; git checkout -b "$b" master; };f"
+    ## Finishes feature branch and deletes it
+    finish = "!f(){ b=$(git branch-name); git checkout master; git branch -d "$b"; git push origin ":$b"; };f"
+    ## Publishes the current branch to github
+    publish = "!git push -u origin $(git branch-name)"
+    ## Unpublishes the branch to github
+    unpublish = "!git push origin :$(git branch-name)"
+    ## Removes all merged branches
+    bdm = "!git branch --merged | grep -v '*' | xargs -n 1 git branch -d"
+
+    # Create initial commit
+    empty = "!git commit -am\"[empty] Initial commit\" --allow-empty"
+
+[filter "lfs"]
+	clean = git-lfs clean %f
+	smudge = git-lfs smudge %f
+	required = true
