@@ -6,8 +6,8 @@ PS1='\[\033[1;31m\]\W/\[\033[0m\] '
 # If not running interactively, don't do anything
 [ -z "$PS1" ] && return
 
-# don't put duplicate lines in the history. See bash(1) for more options
-# ... or force ignoredups and ignorespace
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
 HISTCONTROL=erasedups:ignoredups:ignorespace
 
 # append to the history file, don't overwrite it
@@ -21,11 +21,9 @@ HISTFILESIZE=300000
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-# Allow ctrl-S for history navigation (with ctrl-R)
-stty -ixon
-
-# Ignore case on auto-completion
-# Note: bind used instead of sticking these in .inputrc
+# If set, the pattern "**" used in a pathname expansion context will
+# match all files and zero or more directories and subdirectories.
+#shopt -s globstar
 if [[ $iatest > 0 ]]; then bind "set completion-ignore-case on"; fi
 
 # Show auto-completion list automatically, without double tab
@@ -50,19 +48,19 @@ export LESS_TERMCAP_us=$'\E[01;32m'
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
 # set variable identifying the chroot you work in (used in the prompt below)
-if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
-    xterm-color) color_prompt=yes;;
+    xterm-color|*-256color) color_prompt=yes;;
 esac
 
 # uncomment for a colored prompt, if the terminal has the capability; turned
 # off by default to not distract the user: the focus in a terminal window
 # should be on the output of commands, not on the prompt
-force_color_prompt=yes
+#force_color_prompt=yes
 
 if [ -n "$force_color_prompt" ]; then
     if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
@@ -75,11 +73,15 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
+parse_git_branch() {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+
 if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;91m\]\u\[\033[01;37m\]@\[\033[01;96m\]\h\[\033[01;96m\]:\[\033[01;34m\]\w\[\033[00m\]$(__git_ps1 " \[\033[01;32m\][%s]")\[\033[00m\]\$ '
-    PS2="> "
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;93m\]$(parse_git_branch):\[\033[01;34m\]\w\[\033[00m\]\$ '
+    PS2='> '
 else
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h$(parse_git_branch)$:\w\$ '
 fi
 unset color_prompt force_color_prompt
 
@@ -91,6 +93,25 @@ xterm*|rxvt*)
 *)
     ;;
 esac
+
+# enable color support of ls and also add handy aliases
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    #alias dir='dir --color=auto'
+    #alias vdir='vdir --color=auto'
+
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+
+# colored GCC warnings and errors
+export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+export GOPATH=$HOME/go
+if [ -d "$HOME/go/bin" ] ; then
+    PATH="$HOME/go/bin:$PATH"
+fi
 
 # Alias's for multiple directory listing commands
 alias la='ls -Alh' # show hidden files
@@ -133,12 +154,9 @@ alias .....='cd ../../../..'
 # cd into the old directory
 alias bd='cd "$OLDPWD"'
 
-# Faster keystrokes
-gsettings set org.gnome.desktop.peripherals.keyboard delay 300
-gsettings set org.gnome.desktop.peripherals.keyboard repeat-interval 20
-
-# Local aliases
-alias v='vim'
+# Add an "alert" alias for long running commands.  Use like so:
+#   sleep 10; alert
+#alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 # Alias definitions.
 # You may want to put all your additions into a separate file like
@@ -149,12 +167,23 @@ if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
 fi
 
+if [ -f /path/to/hub.bash_completion ]; then
+    . ~/hub.bash_completion
+fi
+
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
-if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
     . /etc/bash_completion
+  fi
 fi
+
+# Disable ctrl+s freeze
+stty -ixon
 
 # Extract any archive
 extract () {
@@ -232,15 +261,8 @@ up ()
 bind '"\e[A": history-search-backward'
 bind '"\e[B": history-search-forward'
 
-# Set up default editor to vim
 export EDITOR='vim'
 export VISUAL='vim'
-
-# Golang settings
-export GOPATH=$HOME/go
-if [ -d "$HOME/go/bin" ] ; then
-    PATH="$HOME/go/bin:$PATH"
-fi
 
 # Start messages for new bash window
 clear
@@ -252,6 +274,5 @@ echo -ne "Today is "; date
 echo -e ""; ncal -C;
 echo -ne "\e[91mUptime:\e[39m";uptime | awk /'up/'
 echo "";
-
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
