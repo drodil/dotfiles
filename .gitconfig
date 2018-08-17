@@ -80,6 +80,7 @@
     lasttag = describe --tags --abrev=0
     ac = !git add . && git add -u && git commit -a
     acm = "!f() { git add . && git commit -m \"$(echo $@)\"; }; f"
+    current-branch = !git branch | grep '^*' | sed s/\\*\\ //
 
     # Log aliases
     lp = log -p
@@ -120,11 +121,11 @@
     ## Starts feature branch from master
     start = "!f(){ b=$1; git checkout master; git fetch; git rebase; git checkout -b "$b" master; };f"
     ## Finishes feature branch and deletes it
-    finish = "!f(){ b=$(git branch-name); git checkout master; git branch -d "$b"; git push origin ":$b"; };f"
+    finish = "!f(){ b=$(git current-branch); git checkout master; git branch -d "$b"; git push origin ":$b"; };f"
     ## Publishes the current branch to github
-    publish = "!git push -u origin $(git branch-name)"
+    publish = "!git push -u origin $(git current-branch)"
     ## Unpublishes the branch to github
-    unpublish = "!git push origin :$(git branch-name)"
+    unpublish = "!git push origin :$(git current-branch)"
     ## Removes all merged branches
     bdm = "!git branch --merged | grep -v '*' | xargs -n 1 git branch -d"
 
