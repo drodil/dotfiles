@@ -1,103 +1,183 @@
 import os
-import glob
+import os.path
+import fnmatch
 import ycm_core
+import re
 
-flags = [
-    '-Wall',
-    '-Wextra',
-    '-Werror',
-    '-std=c++14',
-    '-x', 'c++',
-    '-I', '/usr/include',
-    '-I', '.'
-    ]
-compilation_database_folder = None
-if os.environ.has_key('YCM_BLD_DIR'):
-  compilation_database_folder = os.environ['YCM_BLD_DIR']
-elif os.path.exists(os.path.join(os.getcwd(), 'compile_commands.json')):
-  compilation_database_folder = os.getcwd()
-else:
-  current_source = os.getcwd()
-  builds = [ current_source + '/build/', current_source + '/bin/', os.path.abspath(current_source + '../build/') ]
-  for build in builds:
-    first_build = build
-    if os.path.exists(os.path.join(build, 'compile_commands.json')):
-      compilation_database_folder = build
-      break
+BASE_FLAGS = [
+        '-Wall',
+        '-Wextra',
+        '-Werror',
+        '-Wno-long-long',
+        '-Wno-variadic-macros',
+        '-fexceptions',
+        '-ferror-limit=10000',
+        '-DNDEBUG',
+        '-std=c++11',
+        '-xc++',
+        '-I/usr/lib/',
+        '-I/usr/include/'
+        ]
 
-if compilation_database_folder:
-  database = ycm_core.CompilationDatabase( compilation_database_folder )
-else:
-  database = None
+SOURCE_EXTENSIONS = [
+        '.cpp',
+        '.cxx',
+        '.cc',
+        '.c',
+        '.m',
+        '.mm'
+        ]
 
-SOURCE_EXTENSIONS = [ '.cpp', '.cxx', '.cc', '.c', '.m', '.mm' ]
+SOURCE_DIRECTORIES = [
+        'src',
+        'lib',
+        ]
 
-def DirectoryOfThisScript():
-  return os.path.dirname( os.path.abspath( __file__ ) )
+HEADER_EXTENSIONS = [
+        '.h',
+        '.hxx',
+        '.hpp',
+        '.hh'
+        ]
 
-def IsHeaderFile( filename ):
-  extension = os.path.splitext( filename )[ 1 ]
-  return extension in [ '.h', '.hxx', '.hpp', '.hh' ]
+HEADER_DIRECTORIES = [
+        'inc',
+        'include'
+        ]
 
-def FindCorrespondingSourceFile( filename ):
-  if IsHeaderFile( filename ):
-    basename = os.path.splitext( filename )[ 0 ]
-    for extension in SOURCE_EXTENSIONS:
-      replacement_file = basename + extension
-      if os.path.exists( replacement_file ):
-        return replacement_file
-      src_file = replacement_file.replace("inc", "src")
-      if os.path.exists( src_file ):
-        return src_file
-      src_file = replacement_file.replace("include", "src")
-      if os.path.exists( src_file ):
-        return src_file
+HOME = os.path.abspath(os.path.expanduser('~'))
 
-  return filename
+def IsHeaderFile(filename):
+    extension = os.path.splitext(filename)[1]
+    return extension in HEADER_EXTENSIONS
 
-def MakeRelativePathsInFlagsAbsolute( flags, working_directory ):
-  if not working_directory:
-    return list( flags )
-  new_flags = []
-  make_next_absolute = False
-  path_flags = [ '-isystem', '-I', '-iquote', '--sysroot=' ]
-  for flag in flags:
-    new_flag = flag
+def FindCorrespondingSourceFile(filename):
+    if IsHeaderFile(filename):
+        basename = os.path.splitext(filename)[0]
+        for extension in SOURCE_EXTENSIONS:
+            replacement_file = basename + extension
+            if os.path.exists(replacement_file):
+                return replacement_file
+            for header_dir in HEADER_DIRECTORIES:
+                for source_dir in SOURCE_DIRECTORIES:
+                    src_file = replacement_file.replace(header_dir, source_dir)
+                    if os.path.exists(src_file):
+                        return src_file
+    return filename
 
-    if make_next_absolute:
-      make_next_absolute = False
-      if not flag.startswith( '/' ):
-        new_flag = os.path.join( working_directory, flag )
+def GetCompilationInfoForFile(database, filename):
+    if IsHeaderFile(filename):
+        filename = FindCorrespondingSourceFile(filename)
+        compilation_info = database.GetCompilationInfoForFile(filename)
+        if compilation_info.compiler_flags_:
+            return compilation_info
+        return None
+    return database.GetCompilationInfoForFile(filename)
 
-    for path_flag in path_flags:
-      if flag == path_flag:
-        make_next_absolute = True
-        break
+def FindNearest(path, target, build_folder):
+    if(path == HOME):
+        raise RuntimeError("Could not find " + target)
 
-      if flag.startswith( path_flag ):
-        path = flag[ len( path_flag ): ]
-        new_flag = path_flag + os.path.join( working_directory, path )
-        break
+    candidate = os.path.join(path, target)
+    if(os.path.isfile(candidate) or os.path.isdir(candidate)):
+        return candidate;
 
-    if new_flag:
-      new_flags.append( new_flag )
+    if(build_folder):
+        for r, dirnames, _ in os.walk(path):
+            for dir_path in dirnames:
+                  candidate = os.path.join(r, dir_path, target)
+                  if "build" in candidate.lower():
+                      if(os.path.isfile(candidate) or os.path.isdir(candidate)):
+                          return candidate;
 
-  return new_flags
+    parent = os.path.dirname(os.path.abspath(path));
+    if(parent == path):
+        raise RuntimeError("Could not find " + target);
 
+    return FindNearest(parent, target, build_folder)
 
-def FlagsForFile( filename ):
-  filename = FindCorrespondingSourceFile( filename )
-  if database:
-    compilation_info = database.GetCompilationInfoForFile( filename )
-    final_flags = MakeRelativePathsInFlagsAbsolute(
-            compilation_info.compiler_flags_,
-            compilation_info.compiler_working_dir_ )
-  else:
-    relative_to = DirectoryOfThisScript()
-    final_flags = MakeRelativePathsInFlagsAbsolute( flags, relative_to )
+def MakeRelativePathsInFlagsAbsolute(flags, working_directory):
+    if not working_directory:
+        return list(flags)
+    new_flags = []
+    make_next_absolute = False
+    path_flags = [ '-isystem', '-I', '-iquote', '--sysroot=' ]
+    for flag in flags:
+        new_flag = flag
 
-  return {
-        'flags': final_flags,
-        'do_cache': True,
-        'override_filename': filename
-        }
+        if make_next_absolute:
+            make_next_absolute = False
+            if not flag.startswith('/'):
+                new_flag = os.path.join(working_directory, flag)
+
+        for path_flag in path_flags:
+            if flag == path_flag:
+                make_next_absolute = True
+                break
+
+            if flag.startswith(path_flag):
+                path = flag[ len(path_flag): ]
+                new_flag = path_flag + os.path.join(working_directory, path)
+                break
+
+        if new_flag:
+            new_flags.append(new_flag)
+    return new_flags
+
+def FlagsForClangComplete(root):
+    try:
+        clang_complete_path = FindNearest(root, '.clang_complete')
+        clang_complete_flags = open(clang_complete_path, 'r').read().splitlines()
+        return clang_complete_flags
+    except:
+        return None
+
+def FlagsForInclude(root):
+    for include_dir in HEADER_DIRECTORIES:
+      try:
+          include_path = FindNearest(root, include_dir)
+          flags = []
+          for dirroot, dirnames, filenames in os.walk(include_path):
+              for dir_path in dirnames:
+                  real_path = os.path.join(dirroot, dir_path)
+                  flags = flags + ["-I" + real_path]
+          return flags
+      except:
+          continue
+    return None
+
+def FlagsForCompilationDatabase(root, filename):
+    try:
+        compilation_db_path = FindNearest(root, 'compile_commands.json', True)
+        compilation_db_dir = os.path.dirname(compilation_db_path)
+        compilation_db = ycm_core.CompilationDatabase(compilation_db_dir)
+        if not compilation_db:
+            return None
+        compilation_info = GetCompilationInfoForFile(compilation_db, filename)
+        if not compilation_info:
+            return None
+        return MakeRelativePathsInFlagsAbsolute(
+                compilation_info.compiler_flags_,
+                compilation_info.compiler_working_dir_)
+    except:
+        return None
+
+def FlagsForFile(filename):
+    root = os.path.realpath(filename);
+    filename = FindCorrespondingSourceFile(filename)
+    compilation_db_flags = FlagsForCompilationDatabase(root, filename)
+    if compilation_db_flags:
+        final_flags = compilation_db_flags
+    else:
+        final_flags = BASE_FLAGS
+        clang_flags = FlagsForClangComplete(root)
+        if clang_flags:
+            final_flags = final_flags + clang_flags
+        include_flags = FlagsForInclude(root)
+        if include_flags:
+            final_flags = final_flags + include_flags
+    return {
+            'flags': final_flags,
+            'do_cache': True,
+            'override_filename': filename
+            }
