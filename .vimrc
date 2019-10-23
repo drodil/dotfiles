@@ -35,7 +35,10 @@ Plug 'airblade/vim-gitgutter'
 " Vim templates support
 Plug 'aperezdc/vim-template'
 " Autoformat
-Plug 'Chiel92/vim-autoformat'
+Plug 'google/vim-maktaba'
+Plug 'google/vim-codefmt'
+Plug 'google/vim-glaive'
+" Cheat sheets
 Plug 'dbeniamine/cheat.sh-vim'
 " Netwr enchancement
 Plug 'tpope/vim-vinegar'
@@ -196,8 +199,13 @@ let g:clang_format#auto_format=1
 let g:clang_format#auto_format_on_insert_leave=1
 
 " Autoformat settings
-au BufWrite * :Autoformat
-autocmd FileType vim,tex let b:autoformat_autoindent=0
+augroup autoformat_settings
+    autocmd FileType c,cpp,hpp,h,proto,javascript,java AutoFormatBuffer clang-format
+    autocmd FileType go AutoFormatBuffer gofmt
+    autocmd FileType gn AutoFormatBuffer gn
+    autocmd FileType html,css,sass,scss,less,json AutoFormatBuffer js-beautify
+    autocmd Filetype ptyhon AutoFormatBuffer autopep8
+augroup END
 
 " Autocomplete for YouCompleteMe
 let g:ycm_global_ycm_extra_conf='~/.vim/.ycm_extra_conf.py'
