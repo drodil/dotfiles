@@ -16,7 +16,7 @@ filetype off                  " required
 " Automatic installation of vim-plug
 if empty(glob('~/.vim/autoload/plug.vim'))
     silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
-          \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+                \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
     autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 
@@ -34,8 +34,9 @@ Plug 'tpope/vim-fugitive'
 Plug 'airblade/vim-gitgutter'
 " Vim templates support
 Plug 'aperezdc/vim-template'
-" Clang-format
-Plug 'rhysd/vim-clang-format'
+" Autoformat
+Plug 'Chiel92/vim-autoformat'
+Plug 'dbeniamine/cheat.sh-vim'
 " Netwr enchancement
 Plug 'tpope/vim-vinegar'
 " FZF
@@ -46,7 +47,7 @@ Plug 'vhdirk/vim-cmake'
 " Easy commenting
 Plug 'tpope/vim-commentary'
 " Autocomplete
-Plug 'Valloric/YouCompleteMe', { 'do': './install.py --system-libclang --clang-completer' }
+Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --go-completer --rust-completer --java-completer' }
 " Async execution
 Plug 'shougo/vimproc', { 'do': 'make' }
 " Cool statusline
@@ -66,18 +67,20 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat'
 " Nice colors
 Plug 'morhetz/gruvbox'
+" Conque GDB
+Plug 'vim-scripts/Conque-GDB'
 call plug#end()            " required
 
 " Set colorscheme to solarized
 syntax enable
 set background=dark
 if $SSH_CONNECTION
-  let g:solarized_termtrans=0
-  let g:solarized_termcolors=256
+    let g:solarized_termtrans=0
+    let g:solarized_termcolors=256
 endif
 
 if filereadable( expand("$HOME/.vim/plugged/gruvbox/package.json") )
-  colorscheme gruvbox
+    colorscheme gruvbox
 endif
 
 " set UTF-8 encoding
@@ -144,10 +147,10 @@ set scrolloff=5                 " Keep at least 5 lines above/below
 " History
 set history=1000                " Remember more commands
 if has('persistent_undo')
-   set undofile                " Persistent undo
-   set undodir=~/.vim/undo     " Location to store undo history
-   set undolevels=1000         " Max number of changes
-   set undoreload=10000        " Max lines to save for undo on a buffer reload
+    set undofile                " Persistent undo
+    set undodir=~/.vim/undo     " Location to store undo history
+    set undolevels=1000         " Max number of changes
+    set undoreload=10000        " Max lines to save for undo on a buffer reload
 endif
 " misc
 set title
@@ -172,10 +175,12 @@ autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
 autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$/
 autocmd InsertLeave * match ExtraWhitespace /\s\+$/
 autocmd BufWinLeave * call clearmatches()
+autocmd FileType netrw setl bufhidden=wipe
 
 " netrw
 let g:netrw_liststyle = 3
 let g:netrw_banner=0
+let g:netrw_preview = 1
 
 " alternate settings
 let g:alternateSearchPath='reg:|src/\([^/]*\)|inc/\1||,reg:|inc/\([^/]*\)|src/\1||,sfr:../source,sfr:../src,sfr:../include,sfr:../inc'
@@ -189,10 +194,10 @@ let g:templates_global_name_prefix='tpl'
 let g:clang_format#detect_style_file=1
 let g:clang_format#auto_format=1
 let g:clang_format#auto_format_on_insert_leave=1
-autocmd FileType c silent! ClangFormatAutoEnable
-autocmd FileType h silent! ClangFormatAutoEnable
-autocmd FileType cpp silent! ClangFormatAutoEnable
-autocmd FileType hpp silent! ClangFormatAutoEnable
+
+" Autoformat settings
+au BufWrite * :Autoformat
+autocmd FileType vim,tex let b:autoformat_autoindent=0
 
 " Autocomplete for YouCompleteMe
 let g:ycm_global_ycm_extra_conf='~/.vim/.ycm_extra_conf.py'
@@ -201,12 +206,12 @@ let g:ycm_warning_symbol='▲'
 
 " fzf settings
 command! -bang -nargs=? -complete=dir Files
-  \ call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
+            \ call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
 
 let g:fzf_nvim_statusline = 0 " disable statusline overwriting
 if executable('ag')
-   let $FZF_DEFAULT_COMMAND = 'ag -g ""'
-   let g:ackprg = 'ag --vimgrep'
+    let $FZF_DEFAULT_COMMAND = 'ag -g ""'
+    let g:ackprg = 'ag --vimgrep'
 endif
 let $FZF_DEFAULT_OPTS .= ' --bind=up:preview-up,down:preview-down'
 
@@ -250,13 +255,14 @@ map <silent> <F3>  <Esc><Esc>:TagbarToggle<CR>
 " BufExplorer toggle
 map <silent> <F4>  <Esc><Esc>:ToggleBufExplorer<CR>
 " Quickfix toggle
-map   <silent> <F5>        :botright cope<CR>
-map   <silent> <F6>        :cclose<CR>
-map   <silent> <F7>        :cp<CR>
-map   <silent> <F8>        :cn<CR>
+map <silent> <F5>        :botright cope<CR>
+map <silent> <F6>        :cclose<CR>
+map <silent> <F7>        :cp<CR>
+map <silent> <F8>        :cn<CR>
+map <silent> <F9> :YcmCompleter FixIt<CR>
 " fzf. Former with prefix.
 map <silent> <F10> :Files!<CR>
-map <silent> <F11> :FZF<CR>
+map <silent> <F11> :Ag<CR>
 map <F12> :!bash $HOME/.vim/tags/generate_tags.sh -d . -i "build docs"<CR>
 "}}}
 
@@ -273,6 +279,16 @@ nnoremap <Right> :echoe "Use l"<CR>
 nnoremap <Up> :echoe "Use k"<CR>
 nnoremap <Down> :echoe "Use j"<CR>
 
+" Shortcuts for system clipboard
+" Copy to X CLIPBOARD
+map <silent> <leader>cc :w !xsel -i -b<CR><CR>
+map <silent> <leader>cp :w !xsel -i -p<CR><CR>
+map <silent> <leader>cs :w !xsel -i -s<CR><CR>
+" Paste from X CLIPBOARD
+map <silent> <leader>pp :r!xsel -p<CR><CR>
+map <silent> <leader>ps :r!xsel -s<CR><CR>
+map <silent> <leader>pb :r!xsel -b<CR><CR>
+
 " Autocommands
 autocmd BufWritePre * %s/\s\+$//e
 augroup filtypes
@@ -283,9 +299,9 @@ augroup filtypes
 augroup end
 
 augroup numbertoggle
-  autocmd!
-  autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
-  autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
+    autocmd!
+    autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
+    autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
 augroup END
 
 augroup remove_trailing_whitespace
@@ -303,9 +319,9 @@ augroup end
 "
 function! ToggleExplore()
     if &ft ==# "netrw"
-         Rexplore
+        Rexplore
     else
-         Explore
+        Explore
     endif
 endfunction
 " }}}
@@ -336,6 +352,13 @@ autocmd FileType tex let g:tex_flavor = "latex"
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" {{{ Markdown settings
+"
+au BufRead,BufNewFile *.md setlocal textwidth=80
+"}}}
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " {{{ JavaScript settings
 "
 au FileType javascript call JavaScriptSettings()
@@ -352,6 +375,8 @@ au FileType python call PythonSettings()
 function! PythonSettings()
     set nocindent
     set shiftwidth=2
+    set tabstop=2
+    set softtabstop=2
     "autocmd BufWrite *.py :call DeleteTrailingWS()
 endfunction
 "}}}
