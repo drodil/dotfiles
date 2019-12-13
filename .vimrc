@@ -49,6 +49,8 @@ Plug 'junegunn/fzf.vim'
 Plug 'vhdirk/vim-cmake'
 " Easy commenting
 Plug 'tpope/vim-commentary'
+" Auto pairs
+Plug 'jiangmiao/auto-pairs'
 " Autocomplete
 Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --go-completer --rust-completer --java-completer' }
 " Async execution
@@ -72,6 +74,7 @@ Plug 'tpope/vim-repeat'
 Plug 'morhetz/gruvbox'
 " Conque GDB
 Plug 'vim-scripts/Conque-GDB'
+Plug 'chemzqm/vim-jsx-improve'
 call plug#end()            " required
 
 " Set colorscheme to solarized
@@ -200,11 +203,12 @@ let g:clang_format#auto_format_on_insert_leave=1
 
 " Autoformat settings
 augroup autoformat_settings
-    autocmd FileType c,cpp,hpp,h,proto,javascript,java AutoFormatBuffer clang-format
+    autocmd FileType c,cpp,hpp,h,proto,java AutoFormatBuffer clang-format
     autocmd FileType go AutoFormatBuffer gofmt
     autocmd FileType gn AutoFormatBuffer gn
     autocmd FileType html,css,sass,scss,less,json AutoFormatBuffer js-beautify
-    autocmd Filetype ptyhon AutoFormatBuffer autopep8
+    autocmd Filetype python AutoFormatBuffer autopep8
+    autocmd Filetype javascript AutoFormatBuffer prettier
 augroup END
 
 " Autocomplete for YouCompleteMe
@@ -231,6 +235,10 @@ nnoremap <leader>jd :YcmCompleter GoToDefinition<CR>
 nnoremap <leader>jj :YcmCompleter GoToDefinitionElseDeclaration<CR>
 nnoremap <leader>jg :YcmCompleter GoToDeclaration<CR>
 nnoremap <leader>jk :YcmCompleter GoToInclude<CR>
+
+" Search in visual mode
+vnoremap <silent> * :<C-u>call VisualSelection('', '')<CR>/<C-R>=@/<CR><CR>
+vnoremap <silent> # :<C-u>call VisualSelection('', '')<CR>?<C-R>=@/<CR><CR>
 
 " Fix tabs on new line
 inoremap <C-Return> <CR><CR><C-o>k<Tab>
