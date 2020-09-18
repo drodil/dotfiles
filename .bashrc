@@ -154,6 +154,13 @@ alias .....='cd ../../../..'
 # cd into the old directory
 alias bd='cd "$OLDPWD"'
 
+# Simple diary and todo list
+year=$(date +'%Y')
+month=$(date +'%m')
+day=$(date +'%d')
+alias diary="mkdir -p $HOME/diary/$year/$month && vim '+norm Go' '+startinsert' $HOME/diary/$year/$month/$day.md"
+alias todo="mkdir -p $HOME/diary && vim '+norm Go' '+startinsert' $HOME/diary/todo.md"
+
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
 #alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
