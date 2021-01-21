@@ -27,6 +27,7 @@ else
     call plug#begin('~/.vim/plugged')
 endif
 Plug 'tpope/vim-pathogen'
+Plug 'vim-syntastic/syntastic'
 " Detector for wrong style indentations
 Plug 'ciaranm/detectindent'
 " Git plugins
@@ -34,48 +35,69 @@ Plug 'tpope/vim-fugitive'
 Plug 'airblade/vim-gitgutter'
 " Vim templates support
 Plug 'aperezdc/vim-template'
-" Autoformat
-Plug 'google/vim-maktaba'
-Plug 'google/vim-codefmt'
-Plug 'google/vim-glaive'
-" Cheat sheets
-Plug 'dbeniamine/cheat.sh-vim'
 " Netwr enchancement
 Plug 'tpope/vim-vinegar'
 " FZF
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
-" Cmake building
-Plug 'vhdirk/vim-cmake'
 " Easy commenting
 Plug 'tpope/vim-commentary'
-" Auto pairs
-Plug 'jiangmiao/auto-pairs'
-" Autocomplete
-Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --go-completer --rust-completer --java-completer' }
 " Async execution
 Plug 'shougo/vimproc', { 'do': 'make' }
 " Cool statusline
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-" Doxygen
-Plug 'vim-scripts/doxygentoolkit.vim', { 'for': 'cpp' }
-" Switch between declaration and definition
-Plug 'vim-scripts/a.vim'
 " Buffer explorer
 Plug 'jlanzarotta/bufexplorer'
-" Syntax higlighting
-Plug 'octol/vim-cpp-enhanced-highlight', { 'for': 'cpp' }
+Plug 'google/vim-maktaba'
+Plug 'google/vim-codefmt'
+Plug 'google/vim-glaive'
 " Surround handling
-Plug 'tpope/vim-surround'
-" Allow repeat for plugins
 Plug 'tpope/vim-repeat'
 " Nice colors
 Plug 'morhetz/gruvbox'
-" Conque GDB
-Plug 'vim-scripts/Conque-GDB'
-Plug 'chemzqm/vim-jsx-improve'
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'rust-lang/rust.vim'
+Plug 'elixir-editors/vim-elixir'
+" Plug 'ycm-core/YouCompleteMe'
+
+let g:coc_global_extensions = ['coc-json', 'coc-git', 'coc-html', 'coc-tsserver', 'coc-pyright', 'coc-sh', 'coc-elixir', 'coc-rls', 'coc-calc', 'coc-go', 'coc-java', 'coc-stylelintplus', 'coc-yaml']
+if isdirectory('./node_modules') && isdirectory('./node_modules/prettier')
+    let g:coc_global_extensions += ['coc-prettier']
+endif
+
+if isdirectory('./node_modules') && isdirectory('./node_modules/eslint')
+    let g:coc_global_extensions += ['coc-eslint']
+endif
+
+" JS
+Plug 'pangloss/vim-javascript'
+Plug 'leafgarland/typescript-vim'
+Plug 'peitalin/vim-jsx-typescript'
+Plug 'maxmellon/vim-jsx-pretty'
+Plug 'styled-components/vim-styled-components', { 'branch': 'main'  }
+Plug 'jparise/vim-graphql'
+Plug 'mfukar/robotframework-vim'
 call plug#end()            " required
+
+execute pathogen#infect()
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 0
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+
+" Use tab for completion
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+function! s:check_back_space() abort
+      let col = col('.') - 1
+        return !col || getline('.')[col - 1]  =~# '\s'
+    endfunction
 
 " Set colorscheme to solarized
 syntax enable
@@ -101,8 +123,6 @@ set smartindent
 set tabstop=4        " tab width is 4 spaces
 set shiftwidth=4     " indent also with 4 spaces
 set expandtab        " expand tabs to spaces
-" wrap lines at 120 chars. 80 is somewaht antiquated with nowadays displays.
-set textwidth=120
 set backspace=indent,eol,start  " Delete over line breaks
 set whichwrap+=<,>,h,l
 set laststatus=2                " Always display the status line
@@ -141,7 +161,8 @@ set gdefault
 set nowrap
 set sidescroll=15
 set listchars+=precedes:<,extends:>
-set tags+=~/.vim/tags/cpp;./tags;/.     " recursively search tags from current directory
+set tags+=tags,.tags,./tags,./.git/tags,~/.vim/tags/java;/     " recursively search tags from current directory
+set suffixesadd=.java
 set autoread            " auto read when a file is changed from the outside
 " Key sequence timeout
 set ttimeout                    " Enable time out
@@ -160,6 +181,9 @@ if has('persistent_undo')
 endif
 " misc
 set title
+set ma
+set clipboard=unnamed
+set guioptions+=a
 
 "   Correct some spelling mistakes    "
 ia teh      the
@@ -175,6 +199,7 @@ ia eslf     self
 ia viod     void
 
 " Remove extra whitespace automatically
+autocmd BufReadPre,FileReadPre * :DetectIndent
 highlight ExtraWhitespace ctermbg=red guibg=red
 match ExtraWhitespace /\s\+$/
 autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
@@ -202,19 +227,22 @@ let g:clang_format#auto_format=1
 let g:clang_format#auto_format_on_insert_leave=1
 
 " Autoformat settings
-augroup autoformat_settings
-    autocmd FileType c,cpp,hpp,h,proto,java AutoFormatBuffer clang-format
-    autocmd FileType go AutoFormatBuffer gofmt
-    autocmd FileType gn AutoFormatBuffer gn
-    autocmd FileType html,css,sass,scss,less,json AutoFormatBuffer js-beautify
-    autocmd Filetype python AutoFormatBuffer autopep8
-    autocmd Filetype javascript AutoFormatBuffer prettier
-augroup END
+"augroup autoformat_settings
+"    autocmd FileType c,cpp,hpp,h,proto,java AutoFormatBuffer clang-format
+"    autocmd FileType go AutoFormatBuffer gofmt
+"    autocmd FileType gn AutoFormatBuffer gn
+"    autocmd FileType html,css,sass,scss,less,json AutoFormatBuffer js-beautify
+"    autocmd Filetype python AutoFormatBuffer autopep8
+"    autocmd Filetype javascript AutoFormatBuffer prettier
+"    autocmd BufEnter *.{js,jsx,ts,tsx} :syntax sync fromstart
+"    autocmd BufLeave *.{js,jsx,ts,tsx} :syntax sync clear
+"augroup END
 
 " Autocomplete for YouCompleteMe
-let g:ycm_global_ycm_extra_conf='~/.vim/.ycm_extra_conf.py'
-let g:ycm_error_symbol='✗'
-let g:ycm_warning_symbol='▲'
+" let g:ycm_global_ycm_extra_conf='~/.vim/.ycm_extra_conf.py'
+" let g:ycm_error_symbol='✗'
+" let g:ycm_warning_symbol='▲'
+" set completeopt=longest,menuone
 
 " fzf settings
 command! -bang -nargs=? -complete=dir Files
@@ -231,10 +259,11 @@ let $FZF_DEFAULT_OPTS .= ' --bind=up:preview-up,down:preview-down'
 let mapleader = ","
 let g:mapleader = ","
 
-nnoremap <leader>jd :YcmCompleter GoToDefinition<CR>
-nnoremap <leader>jj :YcmCompleter GoToDefinitionElseDeclaration<CR>
-nnoremap <leader>jg :YcmCompleter GoToDeclaration<CR>
-nnoremap <leader>jk :YcmCompleter GoToInclude<CR>
+"nnoremap <leader>jd :YcmCompleter GoToDefinition<CR>
+"nnoremap <leader>jj :YcmCompleter GoToDefinitionElseDeclaration<CR>
+"nnoremap <leader>jg :YcmCompleter GoToDeclaration<CR>
+"nnoremap <leader>jk :YcmCompleter GoToInclude<CR>
+nnoremap <leader>jj <C-]>
 
 " Search in visual mode
 vnoremap <silent> * :<C-u>call VisualSelection('', '')<CR>/<C-R>=@/<CR><CR>
@@ -266,28 +295,30 @@ map <leader>e :e! $MYVIMRC<cr>
 " F1 - F12 {{{
 " Explore
 map <silent> <F2> <Esc><Esc>:call ToggleExplore()<CR>
-" Shorter commands to toggle Taglist display
-map <silent> <F3>  <Esc><Esc>:TagbarToggle<CR>
+" Shorter commands to CocList display
+map <silent> <F3>  <Esc><Esc>:CocList -I symbols<CR>
 " BufExplorer toggle
 map <silent> <F4>  <Esc><Esc>:ToggleBufExplorer<CR>
 " Quickfix toggle
-map <silent> <F5>        :botright cope<CR>
+map <silent> <F5>        <Plug>(coc-fix-current)<CR>
 map <silent> <F6>        :cclose<CR>
 map <silent> <F7>        :cp<CR>
 map <silent> <F8>        :cn<CR>
-map <silent> <F9> :YcmCompleter FixIt<CR>
 " fzf. Former with prefix.
 map <silent> <F10> :Files!<CR>
 map <silent> <F11> :Ag<CR>
-map <F12> :!bash $HOME/.vim/tags/generate_tags.sh -d . -i "build docs"<CR>
 "}}}
 
-" map searches
 " no highlight
 map <silent> <leader><cr> :noh<cr>
 
-" Switch between header and source
-map <leader>a :A<cr>
+" Switch between definition and source
+nmap <leader>d <Plug>(coc-definition)
+nmap <leader>t <Plug>(coc-type-definition)
+nmap <leader>a <Plug>(coc-implementation)
+nmap <leader>r <Plug>(coc-references)
+nmap <leader>rn <Plug>(coc-rename)
+nmap <leader>f <Plug>(coc-fix-current)
 
 " Get off my lawn - helpful when learning Vim :)
 nnoremap <Left> :echoe "Use h"<CR>
@@ -377,9 +408,13 @@ au BufRead,BufNewFile *.md setlocal textwidth=80
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " {{{ JavaScript settings
 "
+au BufRead,BufNewFile *.jsx,*.ts,*.tsx call JavaScriptSettings()
 au FileType javascript call JavaScriptSettings()
 function! JavaScriptSettings()
     setl nocindent
+    setl shiftwidth=2
+    setl tabstop=2
+    setl softtabstop=2
 endfunction
 "}}}
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
